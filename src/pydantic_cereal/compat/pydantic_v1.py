@@ -1,8 +1,9 @@
 """Wrappers for Pydantic v1.X compatibility."""
 
-import pydantic
+if True:
+    import pydantic
 
-assert pydantic.__version__ < "2"
+    assert pydantic.__version__ < "2"
 
 from inspect import isabstract
 from typing import Any
@@ -13,7 +14,7 @@ from pydantic.main import BaseModel
 from pydantic.validators import find_validators
 
 
-def is_pydantic_arbitrary_type(type_: type[Any]):
+def is_pydantic_arbitrary_type(type_: type[Any]) -> bool:
     """Checks if a type is 'arbitrary' i.e. not natively supported by Pydantic.
 
     There's no explicit list of "supported types", only a bunch of checks, so we use `find_validators`.
