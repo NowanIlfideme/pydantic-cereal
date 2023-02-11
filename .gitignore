@@ -4,6 +4,7 @@
 
 # Temp files
 condaenv.*.requirements.txt
+*.py.*.tmp
 .pytest_cache
 
 ### macOS
