@@ -6,7 +6,7 @@ if True:
     assert pydantic.__version__ < "2"
 
 from inspect import isabstract
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from pydantic.config import BaseConfig
 from pydantic.fields import ModelField
@@ -27,7 +27,7 @@ def is_pydantic_arbitrary_type(type_: type[Any]) -> bool:
         return True
 
 
-def get_pydantic_arbitrary_fields(model: BaseModel) -> dict[str, ModelField]:
+def get_pydantic_arbitrary_fields(model: type[BaseModel]) -> dict[str, ModelField]:
     """Gets the 'arbitrary' fields from a Pydantic model."""
     return {name: fld for name, fld in model.__fields__.items() if is_pydantic_arbitrary_type(fld.type_)}
 
@@ -37,6 +37,11 @@ class CerealModel(BaseModel):
 
     This also changes some model config options.
     """
+
+    if TYPE_CHECKING:
+        __arbitrary_fields__: dict[str, ModelField]
+        __pure_fields__: dict[str, ModelField]
+        __pure_model__: type[BaseModel]
 
     class Config(BaseConfig):
         """Cereal model config defaults."""
@@ -51,17 +56,33 @@ class CerealModel(BaseModel):
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
-        if isabstract(cls):
-            # TODO: Register class?
-            pass
+        if not isabstract(cls):
+            # Select arbitrary and pure fields
+            cls.__arbitrary_fields__ = get_pydantic_arbitrary_fields(cls)
+            cls.__pure_fields__ = {
+                k: v for k, v in cls.__fields__.items() if k not in cls.__arbitrary_fields__
+            }
 
-    @property
-    def __arbitrary_fields__(self) -> dict[str, ModelField]:
-        """Returns arbitrary fields of this model."""
-        return get_pydantic_arbitrary_fields(self)
+            # Create "pure" model version
+            pure_kwargs: dict[str, Any] = {}
+            for k, v in cls.__pure_fields__.items():
+                if v.required:
+                    if v.default:
+                        pure_kwargs[k] = (v.type_, v.default)
+                    else:
+                        pure_kwargs[k] = (v.type_, ...)
+                else:
+                    pure_kwargs[k] = (v.type_, None)
+            cls.__pure_model__ = pydantic.create_model(
+                cls.__name__,
+                __config__=cls.Config,
+                __module__=cls.__module__,
+                **pure_kwargs,
+            )
 
-    @property
-    def __pure_fields__(self) -> dict[str, ModelField]:
-        """Returns 'pure' pydantic-compatible fields of this model."""
-        # NOTE: This can be more efficient, but I'm focusing on lower-code for now
-        return {k: v for k, v in self.__fields__.items() if k not in self.__arbitrary_fields__}
+    def _get_pure_model(self) -> BaseModel:
+        """Creates a 'pure' Pydantic model of this type.
+
+        Note that all validations are ignored.
+        """
+        return self.__pure_model__(**self.dict())
