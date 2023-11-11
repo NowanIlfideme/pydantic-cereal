@@ -13,36 +13,35 @@ repos:
       - id: check-toml
       - id: end-of-file-fixer
       - id: detect-private-key
+  - repo: https://github.com/charliermarsh/ruff-pre-commit
+    # Ruff version.
+    rev: "v0.0.263"
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
   - repo: https://github.com/pycqa/isort
-    rev: "5.10.1"
+    rev: "5.12.0"
     hooks:
       - id: isort
         name: isort (python)
   - repo: https://github.com/psf/black
     # docs: https://black.readthedocs.io/en/stable/integrations/source_version_control.html
-    rev: "22.6.0"
+    rev: "23.3.0"
     hooks:
       - id: black
     # consider also black-jupyter
-  - repo: https://github.com/pycqa/flake8
-    # docs: https://flake8.pycqa.org/en/latest/user/using-hooks.html?highlight=commit
-    rev: "5.0.4"
-    hooks:
-      - id: flake8
-        additional_dependencies: [flake8-pyproject]
-  # - repo: https://github.com/john-hen/flake8-pyproject
-  #   # alternate to above, however it should work with flake8-pyproject as an additional dep
-  #   rev: "1.0.1"
-  #   hooks:
-  #     - id: flake8-pyproject
   - repo: https://github.com/pre-commit/mirrors-mypy
     # NOTE: This passes ALL files to `mypy`. mypy will cache these.
     # However, we must ignore all missing imports, because pre-commit runs in a separate env
-    rev: "v0.991"
+    rev: "v1.3.0"
     hooks:
       - id: mypy
         pass_filenames: false
         args: [--config-file, pyproject.toml, --ignore-missing-imports]
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.7.0
+    hooks:
+      - id: markdownlint-cli2
   # SEE: https://pre-commit.com/#repository-local-hooks
   # - repo: local
   #   hooks:
