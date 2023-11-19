@@ -1,20 +1,20 @@
 """Error definitions."""
 
 
-class PydanticCerealError(Exception):
+class CerealBaseError(Exception):
     """Base error class for pydantic-cereal."""
 
 
-class RegistrationError(PydanticCerealError):
+class CerealRegistrationError(CerealBaseError):
     """Error during registration."""
 
 
-class CerealProtocolError(PydanticCerealError, TypeError):
+class CerealProtocolError(CerealBaseError, TypeError):
     """Error with a reader or writer protocol.
 
     This is also a TypeError.
     """
 
 
-class CerealContextError(PydanticCerealError):
+class CerealContextError(CerealBaseError):
     """Error with pydantic-cereal context."""

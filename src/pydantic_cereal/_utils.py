@@ -4,7 +4,7 @@ import inspect
 import warnings
 from typing import Any
 
-from pydantic_cereal.errors import RegistrationError
+from pydantic_cereal.errors import CerealRegistrationError
 
 
 def import_object(dotted_path: str) -> Any:
@@ -50,7 +50,7 @@ def get_import_string(obj: Any) -> str:
     """Try to get an 'import string' for the given object."""
     module = inspect.getmodule(obj)
     if module is None:
-        raise RegistrationError(f"Couldn't infer module from object {obj!r}")
+        raise CerealRegistrationError(f"Couldn't infer module from object {obj!r}")
 
     # Try to get from qualified name?
     qn = getattr(obj, "__qualname__", None)
@@ -61,7 +61,7 @@ def get_import_string(obj: Any) -> str:
     module_members = {k: v for (k, v) in inspect.getmembers(module)}
     found_members = [k for k in module_members if module_members[k] is obj]
     if len(found_members) == 0:
-        raise RegistrationError(f"Object {obj!r} has no name, and not found in {module}.")
+        raise CerealRegistrationError(f"Object {obj!r} has no name, and not found in {module}.")
     elif len(found_members) > 1:
         warnings.warn(f"Found multiple name for the object, taking first: {found_members}")
     obj_name = found_members[0]

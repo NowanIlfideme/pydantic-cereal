@@ -21,7 +21,7 @@ classifiers = [
     "Topic :: Software Development",
     "Typing :: Typed",
 ]
-dependencies = ["pydantic>=2,<3", "fsspec"]
+dependencies = ["pydantic>=2,<3", "fsspec", "universal_pathlib"]
 # Add url = "https://github.com/NowanIlfideme/pydantic-cereal"
 
 [project.optional-dependencies]
@@ -41,6 +41,8 @@ docs = [
     "mkdocstrings[python]",
     "pymdown-extensions",
     "pygments",
+    # TODO: Add
+    "ipykernel",
 ]
 datatests = ["pandas~=2.1.3", "pandas-stubs", "pyspark~=3.5.0"]
 

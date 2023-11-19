@@ -39,8 +39,14 @@ T = TypeVar("T")
 TModel = TypeVar("TModel", bound=BaseModel)
 
 
+__all__ = ["Cereal"]
+
+
 class CerealContext(AbstractContextManager):
-    """Serialization context."""
+    """Serialization context.
+
+    This is managed by the [`Cereal`][pydantic_cereal.Cereal] class - users shouldn't use this directly!
+    """
 
     def __init__(self, cereal: "Cereal", workdir: Union[UPath, Path, str]) -> None:
         assert isinstance(cereal, Cereal)
@@ -77,7 +83,37 @@ TType = TypeVar("TType", bound=type)
 
 
 class Cereal(object):
-    """Serialization."""
+    """Serialization.
+
+    Usage
+    -----
+    To set up, create a global `cereal` variable:
+
+    ```python
+    from upath import UPath
+    from pydantic import BaseModel
+    from pydantic_cereal import Cereal
+
+    cereal = Cereal()  # global variable
+    ```
+
+    Next, define a wrapped type for
+
+    ```python
+    MyType = str
+
+    def my_reader(uri: str) -> MyType:
+        return UPath(uri).read_text()
+
+    def my_writer(obj: MyType, uri: str) -> None:
+        UPath(uri).write_text(obj)
+
+    MyWrappedType = cereal.wrap_type(MyType, my_reader, my_writer)
+    ```
+
+    Define a
+
+    """
 
     # Annotation API
 
@@ -111,10 +147,6 @@ class Cereal(object):
 
         def f_validator(v: Any, handler: ValidatorFunctionWrapHandler, info: ValidationInfo) -> Any:
             """Validate by loading from context."""
-            # TODO: Remove, this is just for debugging.
-            # print(f"Validator for value {v!r}")
-            # print(f"Handler: {handler!r}")
-            # print(f"Mode: {info.mode!r}. Info: {info!r}")
             if self.active_context is None:
                 # Attempting to use pydantic-cereal outside of the context. Using default validator
                 return handler(v)
@@ -153,7 +185,13 @@ class Cereal(object):
     # I/O API
 
     def write_model(self, model: BaseModel, workdir: Union[UPath, Path, str]) -> UPath:
-        """Write the pydantic.BaseModel to the path."""
+        """Write the pydantic.BaseModel to the path.
+
+        TODO
+        ----
+        - Add JSON options.
+        - Write YAML metadata instead?
+        """
         with self.context(workdir=workdir):
             # Create saving directory
             wd = ensure_empty_dir(self.workdir)
@@ -164,11 +202,11 @@ class Cereal(object):
             if "class" in model_dict:
                 raise ValueError("Key 'class' is reserved for pydantic-cereal.")
             model_dict["class"] = get_import_string(type(model))
-            model_json = json.dumps(model_dict, indent=2)  # TODO: JSON options?
+            model_json = json.dumps(model_dict, indent=2)
             with (wd / "model.json").open(mode="w") as f:
                 f.write(model_json)
             # Write schema (as JSON)
-            model_j_schema = json.dumps(model.model_json_schema(), indent=2)  # TODO: JSON options?
+            model_j_schema = json.dumps(model.model_json_schema(), indent=2)
             with (wd / "model.schema.json").open(mode="w") as f:
                 f.write(model_j_schema)
             # FIXME: We need to also write metadata somewhere, such as "what object is this?"...
@@ -201,10 +239,16 @@ class Cereal(object):
             res = TypeAdapter(model_cls).validate_python(model_raw)
             return res
 
-    # Internal API
+    # Creation
 
     def __init__(self) -> None:
         self._context_stack: List[CerealContext] = []
+
+    def __repr__(self) -> str:
+        """Representation."""
+        return type(self).__qualname__ + "()"
+
+    # Internal API
 
     def context(self, workdir: Union[UPath, Path, str]) -> CerealContext:
         """Create a writing context (usable via `with` statement)."""
@@ -239,17 +283,17 @@ class Cereal(object):
     def _generate_filename(self, obj: Any) -> str:
         """Generate a file name for an object.
 
-        TODO: Improve by using JSON-path-like?
+        TODO
+        ------------
+        Improve by using JSON-path-like?
         """
-        return str(uuid.uuid4()).replace("-", "")  # TODO: Make this better
+        return str(uuid.uuid4()).replace("-", "")
 
     def _write_obj(self, obj: Any, writer: CerealWriter) -> str:
         """Write object, returning its relative path."""
         if self.active_context is None:
             raise CerealContextError("Context not active - aborting write.")
         filename = self._generate_filename(obj)
-
-        UPath(self.workdir).mkdir(parents=True, exist_ok=True)  # FIXME: Remove
 
         write_path = self.workdir / filename
         writer(obj, str(write_path))
