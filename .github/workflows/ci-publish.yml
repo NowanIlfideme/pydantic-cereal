@@ -119,6 +119,8 @@ jobs:
           pip install "pydantic~=${{ matrix.lib-pydantic }}"
           pip install -e ".[${{ matrix.deps }}]"
       - name: Build with mkdocs
+        env:
+          JUPYTER_PLATFORM_DIRS: 1  # suppress warning for Jupyter build in mkdocs
         run: mkdocs build
   publish-testpypi:
     name: "Publish to TestPyPI"
