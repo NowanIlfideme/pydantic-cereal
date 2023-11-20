@@ -34,6 +34,8 @@ dev = [
     "isort==5.12.0",
     "mypy==1.5.1",
     "pytest==7.4.2",
+    # stubs
+    "pandas-stubs",
 ]
 docs = [
     "mkdocs",
@@ -44,7 +46,7 @@ docs = [
     # TODO: Add
     "ipykernel",
 ]
-datatests = ["pandas~=2.1.3", "pandas-stubs", "pyspark~=3.5.0"]
+datatests = ["pandas~=2.1.3", "pyspark~=3.5.0"]
 
 [project.scripts]
 
