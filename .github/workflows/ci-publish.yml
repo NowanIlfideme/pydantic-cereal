@@ -95,12 +95,38 @@ jobs:
           pip install -e ".[${{ matrix.deps }}]"
       - name: Test with pytest
         run: pytest
+  test-docs:
+    name: "Test Docs Build (mkdocs)"
+    # NOTE: We don't actually upload these docs - this is done automatically by ReadTheDocs
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+        deps:
+          - dev,docs,datatests
+        lib-pydantic:
+          - "2.5"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Package with dependencies ${{ matrix.deps }}
+        run: |
+          pip install "pydantic~=${{ matrix.lib-pydantic }}"
+          pip install -e ".[${{ matrix.deps }}]"
+      - name: Build with mkdocs
+        run: mkdocs build
   publish-testpypi:
     name: "Publish to TestPyPI"
     needs:
       - "lint-ruff"
       - "lint-mypy"
       - "test-unit"
+      - "test-docs"
     if: ${{ github.event_name == 'release' && github.event.action == 'created' }}
     runs-on: ubuntu-latest
     environment: testpypi
