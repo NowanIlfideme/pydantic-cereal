@@ -1,7 +1,7 @@
 # See https://setuptools.pypa.io/en/latest/userguide/pyproject_config.html
 
 [build-system]
-requires = ["setuptools>=61.0.0", "setuptools-scm[toml]>=6.2"]
+requires = ["setuptools>=61.0.0", "setuptools-scm[toml]>=6.2", "wheel>=0.41"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -26,8 +26,11 @@ dependencies = ["pydantic>=2,<3", "fsspec", "universal_pathlib"]
 
 [project.optional-dependencies]
 dev = [
+    # Dependencies and build
     "setuptools>=61.0.0",
     "setuptools-scm[toml]>=6.2",
+    "wheel>=0.41",
+    #
     "pre-commit==3.5.0",
     "ruff==0.1.5",
     "black==23.11.0",
