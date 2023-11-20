@@ -138,7 +138,7 @@ jobs:
         python-version:
           - "3.11"
         deps:
-          - dev,docs,datatests
+          - dev,docs
         lib-pydantic:
           - "2.5"
     steps:
@@ -157,3 +157,39 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+  publish-pypi:
+    name: "Publish to PyPI"
+    needs:
+      - "publish-testpypi"  # ensure publishing is successful on TestPyPI first
+      # - "lint-ruff"
+      # - "lint-mypy"
+      # - "test-unit"
+      # - "test-docs"
+    if: ${{ github.event_name == 'release' && github.event.action == 'created' }}
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version:
+          - "3.11"
+        deps:
+          - dev,docs
+        lib-pydantic:
+          - "2.5"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Package with dependencies ${{ matrix.deps }}
+        run: |
+          pip install "pydantic~=${{ matrix.lib-pydantic }}"
+          pip install -e ".[${{ matrix.deps }}]"
+      - name: Build
+        run: python setup.py sdist bdist_wheel
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
