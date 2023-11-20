@@ -57,7 +57,7 @@ plugins:
               - "!^_" # exlude all members starting with _
   - mkdocs-jupyter:
       include_source: true
-      execute: false # TODO: Actually, we want to re-execute these, but not right now
+      execute: true # TODO: Actually, we want to re-execute these, but not right now
 
 markdown_extensions:
   - admonition
