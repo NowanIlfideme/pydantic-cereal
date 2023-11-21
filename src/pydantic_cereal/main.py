@@ -83,36 +83,20 @@ TType = TypeVar("TType", bound=type)
 
 
 class Cereal(object):
-    """Serialization.
+    """Main serialization object.
 
     Usage
     -----
     To set up, create a global `cereal` variable:
 
     ```python
-    from upath import UPath
-    from pydantic import BaseModel
     from pydantic_cereal import Cereal
 
     cereal = Cereal()  # global variable
     ```
 
-    Next, define a wrapped type for
-
-    ```python
-    MyType = str
-
-    def my_reader(uri: str) -> MyType:
-        return UPath(uri).read_text()
-
-    def my_writer(obj: MyType, uri: str) -> None:
-        UPath(uri).write_text(obj)
-
-    MyWrappedType = cereal.wrap_type(MyType, my_reader, my_writer)
-    ```
-
-    Define a
-
+    Use [`cereal.wrap_type()`][pydantic_cereal.Cereal.wrap_type] to "register" readers and writers
+    into a new `Annotated` type.
     """
 
     # Annotation API
