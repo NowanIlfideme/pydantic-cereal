@@ -1,4 +1,7 @@
-"""Tests for README/Index examples."""
+"""Tests for README/Index examples.
+
+The "global" `cereal` object here is only global to this module, which
+"""
 
 from pydantic import BaseModel, ConfigDict
 from upath import UPath  # based on `fsspec`, used for `pathlib.Path`-like interface
@@ -44,7 +47,7 @@ MyWrappedType = cereal.wrap_type(MyType, reader=my_reader, writer=my_writer)
 class MyModel(BaseModel):
     """My custom Pydantic model."""
 
-    config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True)  # Pydantic configuration
     fld: MyWrappedType
 
 

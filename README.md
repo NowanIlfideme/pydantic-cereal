@@ -60,7 +60,7 @@ MyWrappedType = cereal.wrap_type(MyType, reader=my_reader, writer=my_writer)
 class MyModel(BaseModel):
     """My custom Pydantic model."""
 
-    config = ConfigDict(arbitrary_types_allowed=True)
+    model_config = ConfigDict(arbitrary_types_allowed=True)  # Pydantic configuration
     fld: MyWrappedType
 
 
