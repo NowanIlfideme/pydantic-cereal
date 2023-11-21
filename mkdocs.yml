@@ -12,8 +12,11 @@ site_url: ""
 use_directory_urls: false
 
 nav:
-  - Overview: index.md
-  - "Minimal Example": minimal_example.ipynb
+  - "Overview": index.md
+  - "Examples":
+      - "Minimal Example": examples/minimal.ipynb
+      - "Pandas Example": examples/pandas.ipynb
+  - "API Reference": reference.md
 
 theme:
   name: "material"
@@ -43,14 +46,21 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          rendering:
+          options: # https://mkdocstrings.github.io/python/usage/#globallocal-options
+            heading_level: 2
+            show_root_heading: true
+
+            #
             docstring_style: numpy
             docstring_options:
+              ignore_init_summary: true
               warn_unknown_params: false # TODO: Remove when Griffe has Pydantic support
-            show_root_heading: true
-            show_object_full_path: false
+            show_object_full_path: true
             show_signature_annotations: true
-
+            show_bases: true
+            show_source: true
+            annotations_path: "brief"
+            unwrap_annotated: false
           selection:
             filters:
               - "^__init__$" # but always include __init__ modules and methods
