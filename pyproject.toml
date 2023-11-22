@@ -30,17 +30,20 @@ dev = [
     "setuptools>=61.0.0",
     "setuptools-scm[toml]>=6.2",
     "wheel>=0.41",
-    #
+    # Dev tools
     "pre-commit==3.5.0",
+    # Linting
     "ruff==0.1.6",
     "black==23.11.0",
     "isort==5.12.0",
     "mypy==1.7.0",
+    # Testing
     "pytest==7.4.3",
+    "pytest-lazy-fixture-0.6.3",
     # Jupyter Notebook
     "jupyter",
     "ipykernel",
-    # stubs
+    # Stubs (including optional dependencies)
     "pandas-stubs",
 ]
 docs = [
