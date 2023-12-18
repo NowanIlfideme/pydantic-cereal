@@ -83,7 +83,7 @@ def normalize_writer(writer: WriterLike) -> CerealWriter:
         sig.bind("obj", "uri")
     except TypeError as why:
         raise CerealProtocolError(
-            f"Writer must be callable with an object URI, got signature: {sig!s}"
+            f"Writer must be callable with an object and URI, got signature: {sig!s}"
         ) from why
     # TODO: More checking?
     return writer

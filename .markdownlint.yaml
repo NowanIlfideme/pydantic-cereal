@@ -1,3 +1,4 @@
 # Configuration for markdownlint, specifically markdownlint-cli2
 MD052: false # allow things like [ClassName][pydantic_cereal.ClassName]
 MD013: false # line length
+MD046: false # Code block style [Expected: fenced; Actual: indented]

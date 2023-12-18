@@ -67,10 +67,11 @@ class MyModel(BaseModel):
 mdl = MyModel(fld=MyType("my_field"))
 
 # We can save the whole model to an fsspec URI, such as this MemoryFileSystem
-cereal.write_model(mdl, "memory://my_model")
+uri = "memory://my_model"
+cereal.write_model(mdl, uri)
 
 # And we can read it back later
-obj = cereal.read_model("memory://my_model")
+obj = cereal.read_model(uri)
 assert isinstance(obj, MyModel)
 assert isinstance(obj.fld, MyType)
 ```

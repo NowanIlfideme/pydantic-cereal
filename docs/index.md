@@ -34,7 +34,13 @@ class MyType(object):
 
     def __repr__(self) -> str:
         return f"MyType({self.value})"
+```
 
+!!! warning
+
+    There are some [limitations][limitations] on where you can define your Pydantic models.
+
+```python
 
 # Create reader and writer from an fsspec URI
 
@@ -65,10 +71,11 @@ class MyModel(BaseModel):
 mdl = MyModel(fld=MyType("my_field"))
 
 # We can save the whole model to an fsspec URI, such as this MemoryFileSystem
-cereal.write_model(mdl, "memory://my_model")
+uri = "memory://my_model"
+cereal.write_model(mdl, uri)
 
 # And we can read it back later
-obj = cereal.read_model("memory://my_model")
+obj = cereal.read_model(uri)
 assert isinstance(obj, MyModel)
 assert isinstance(obj.fld, MyType)
 ```
@@ -84,4 +91,13 @@ that are available in Pydantic V2 and use
 [`typing.Annotated`](https://docs.python.org/3/library/typing.html#typing.Annotated)
 (or `typing_extensions.Annotated`).
 
-The [`Cereal`][pydantic_cereal.Cereal] class uses a context to write
+The [`Cereal`][pydantic_cereal.Cereal] class uses a context to convert the objects-to-write into
+JSON-compatible metadata, and call the `writer` function.
+
+## Limitations
+
+1. Your `cereal` object doesn't necessarily have to be a global, but the same instance must be
+   used to define your
+2. You can't define your Pydantic model inside a function, because `pydantic-cereal` relies on
+   importing your type, and we can't import local variables.
+   Instead, define it in a top-level module, then import it.
