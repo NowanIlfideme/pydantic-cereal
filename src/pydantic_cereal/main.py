@@ -58,7 +58,7 @@ class CerealContext(AbstractContextManager):
         assert isinstance(cereal, Cereal)
         if fs:
             assert isinstance(target_path, str)
-            self._fs = fs
+            inner_path = target_path
         else:
             if isinstance(target_path, str):
                 fs, _, paths = get_fs_token_paths(target_path)
