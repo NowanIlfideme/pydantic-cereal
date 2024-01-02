@@ -23,7 +23,7 @@ from typing_extensions import Annotated, Self
 from upath import UPath
 
 from ._metadata import CerealInfo, ImportString, cereal_meta_schema
-from ._path_utils import append_filename, ensure_empty_dir
+from ._path_utils import append_path_parts, ensure_empty_dir
 from ._protocols import (
     CerealReader,
     CerealWriter,
@@ -64,7 +64,7 @@ class CerealContext(AbstractContextManager):
                 fs, _, paths = get_fs_token_paths(target_path)
                 inner_path = paths[-1]
             elif isinstance(target_path, Path) and not isinstance(target_path, UPath):
-                fs, _, paths = get_fs_token_paths(f"file:{target_path}")
+                fs, _, paths = get_fs_token_paths(f"file://{target_path}")
                 inner_path = paths[-1]
             elif isinstance(target_path, UPath):
                 fs = target_path.fs
@@ -212,7 +212,7 @@ class Cereal(object):
         with self.context(target_path=target_path, fs=fs):
             # Create saving directory
             fs = self.fs
-            wd = ensure_empty_dir(fs, self.workdir)
+            targ_path = ensure_empty_dir(fs, self.target_path)
 
             # Write model (as JSON) with extra 'class' keyword
             # NOTE: This will write all wrapped types too!
@@ -221,14 +221,14 @@ class Cereal(object):
                 raise ValueError("Key 'class' is reserved for pydantic-cereal.")
             model_dict["class"] = get_import_string(type(model))
             model_json = json.dumps(model_dict, indent=2)
-            with fs.open(append_filename(fs, wd, "model.json"), mode="w") as f:
+            with fs.open(append_path_parts(fs, targ_path, "model.json"), mode="w") as f:
                 f.write(model_json)
             # Write schema (as JSON)
             model_j_schema = json.dumps(model.model_json_schema(), indent=2)
-            with fs.open(append_filename(fs, wd, "model.schema.json"), mode="w") as f:
+            with fs.open(append_path_parts(fs, targ_path, "model.schema.json"), mode="w") as f:
                 f.write(model_j_schema)
             # FIXME: We need to also write metadata somewhere, such as "what object is this?"...
-        return wd
+        return targ_path
 
     def read_model(
         self,
@@ -244,9 +244,9 @@ class Cereal(object):
             )
         with self.context(target_path=target_path, fs=fs):
             fs = self.fs
-            wd = self.workdir
+            targ_path = self.target_path
             # Load raw data
-            with fs.open(append_filename(fs, wd, "model.json"), mode="r") as f:
+            with fs.open(append_path_parts(fs, targ_path, "model.json"), mode="r") as f:
                 model_raw = json.load(f)
             # Get model class
             assert isinstance(model_raw, dict)
@@ -303,7 +303,7 @@ class Cereal(object):
         return self.active_context.fs
 
     @property
-    def workdir(self) -> str:
+    def target_path(self) -> str:
         """Working directory."""
         if self.active_context is None:
             raise CerealContextError("No context is active - no working directory.")
@@ -325,7 +325,7 @@ class Cereal(object):
         filename = self._generate_filename(obj)
 
         fs = self.fs
-        write_path = append_filename(fs, self.workdir, filename)
+        write_path = append_path_parts(fs, self.target_path, filename)
         writer(obj, self.fs, write_path)
         return filename
 
@@ -334,7 +334,7 @@ class Cereal(object):
         f_reader, _ = self._normalize_reader(cereal_meta.cereal_reader)
 
         fs = self.fs
-        path = append_filename(fs, self.workdir, cereal_meta.object_path)
+        path = append_path_parts(fs, self.target_path, cereal_meta.object_path)
         return f_reader(fs, path)
 
     # Helpers

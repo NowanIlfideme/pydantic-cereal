@@ -14,6 +14,6 @@ def ensure_empty_dir(fs: AbstractFileSystem, workdir: str) -> str:
     return workdir
 
 
-def append_filename(fs: AbstractFileSystem, path: str, filename: str) -> str:
-    """Append filename to a path given filesystem."""
-    return path + fs.sep + filename
+def append_path_parts(fs: AbstractFileSystem, path_base: str, *path_parts: str) -> str:
+    """Append parts to a path given filesystem."""
+    return str(fs.sep).join([path_base, *path_parts])
