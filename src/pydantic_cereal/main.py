@@ -77,7 +77,7 @@ class CerealContext(AbstractContextManager):
         self._cereal = cereal
 
     @property
-    def target_path(self) -> UPath:
+    def target_path(self) -> str:
         """Target path of context."""
         return self._target_path
 
@@ -201,7 +201,7 @@ class Cereal(object):
         model: BaseModel,
         target_path: Union[UPath, Path, str],
         fs: Optional[AbstractFileSystem] = None,
-    ) -> UPath:
+    ) -> str:
         """Write the pydantic.BaseModel to the path.
 
         TODO

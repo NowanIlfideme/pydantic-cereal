@@ -113,5 +113,5 @@ module = ["pydantic_cereal.*"]
 disallow_untyped_defs = true
 
 [[tool.mypy.overrides]]
-module = ["setuptools", "setuptools_scm"]
+module = ["setuptools", "setuptools_scm", "fsspec"]
 ignore_missing_imports = true
