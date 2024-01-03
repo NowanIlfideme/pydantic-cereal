@@ -4,6 +4,8 @@ import inspect
 from abc import abstractmethod
 from typing import Any, Protocol, TypeVar, Union, runtime_checkable
 
+from fsspec import AbstractFileSystem
+
 from ._utils import import_object
 from .errors import CerealProtocolError
 
@@ -26,8 +28,8 @@ class CerealReader(Protocol[T_read]):
     """Reader class for a particular type."""
 
     @abstractmethod
-    def __call__(self, uri: str) -> T_read:
-        """Read data from the given URI."""
+    def __call__(self, fs: AbstractFileSystem, path: str) -> T_read:
+        """Read data from the given path within the filesystem."""
 
 
 @runtime_checkable
@@ -35,8 +37,8 @@ class CerealWriter(Protocol[T_write]):
     """Writer class for a particular type."""
 
     @abstractmethod
-    def __call__(self, obj: T_write, uri: str) -> Any:
-        """Write data to the given URI."""
+    def __call__(self, obj: T_write, fs: AbstractFileSystem, path: str) -> Any:
+        """Write data to the given path within the filesystem."""
 
 
 ReaderLike = Union[CerealReader, str]
@@ -58,9 +60,11 @@ def normalize_reader(reader: ReaderLike) -> CerealReader:
     # Check signature
     sig = inspect.signature(reader)
     try:
-        sig.bind("uri")
+        sig.bind("fs", "path")
     except TypeError as why:
-        raise CerealProtocolError(f"Reader must be callable with a URI, got signature: {sig!s}") from why
+        raise CerealProtocolError(
+            f"Reader must be callable with a filesystem and path, got signature: {sig!s}"
+        ) from why
     # TODO: More checking?
     return reader
 
@@ -80,10 +84,10 @@ def normalize_writer(writer: WriterLike) -> CerealWriter:
     # Check signature
     sig = inspect.signature(writer)
     try:
-        sig.bind("obj", "uri")
+        sig.bind("obj", "fs", "path")
     except TypeError as why:
         raise CerealProtocolError(
-            f"Writer must be callable with an object and URI, got signature: {sig!s}"
+            f"Writer must be callable with an object, filesystem and path, got signature: {sig!s}"
         ) from why
     # TODO: More checking?
     return writer

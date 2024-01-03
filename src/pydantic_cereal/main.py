@@ -7,6 +7,7 @@ from contextlib import AbstractContextManager
 from pathlib import Path
 from typing import Any, List, Optional, Tuple, Type, TypeVar, Union
 
+from fsspec import AbstractFileSystem, get_fs_token_paths
 from pydantic import (
     BaseModel,
     SerializerFunctionWrapHandler,
@@ -22,7 +23,7 @@ from typing_extensions import Annotated, Self
 from upath import UPath
 
 from ._metadata import CerealInfo, ImportString, cereal_meta_schema
-from ._path_utils import ensure_empty_dir
+from ._path_utils import append_path_parts, ensure_empty_dir
 from ._protocols import (
     CerealReader,
     CerealWriter,
@@ -48,15 +49,42 @@ class CerealContext(AbstractContextManager):
     This is managed by the [`Cereal`][pydantic_cereal.Cereal] class - users shouldn't use this directly!
     """
 
-    def __init__(self, cereal: "Cereal", workdir: Union[UPath, Path, str]) -> None:
+    def __init__(
+        self,
+        cereal: "Cereal",
+        target_path: Union[UPath, Path, str],
+        fs: Optional[AbstractFileSystem] = None,
+    ) -> None:
         assert isinstance(cereal, Cereal)
-        self._workdir = UPath(workdir)
+        if fs:
+            assert isinstance(target_path, str)
+            inner_path = target_path
+        else:
+            if isinstance(target_path, str):
+                fs, _, paths = get_fs_token_paths(target_path)
+                inner_path = paths[-1]
+            elif isinstance(target_path, Path) and not isinstance(target_path, UPath):
+                fs, _, paths = get_fs_token_paths(f"file://{target_path}")
+                inner_path = paths[-1]
+            elif isinstance(target_path, UPath):
+                fs = target_path.fs
+                inner_path = target_path.path
+            else:
+                raise TypeError("'target_path' must be a 'str', 'Path' or 'UPath'")
+
+        self._target_path = inner_path
+        self._fs = fs
         self._cereal = cereal
 
     @property
-    def workdir(self) -> UPath:
-        """Working directory."""
-        return self._workdir
+    def target_path(self) -> str:
+        """Target path of context."""
+        return self._target_path
+
+    @property
+    def fs(self) -> AbstractFileSystem:
+        """File system to be used for target path."""
+        return self._fs
 
     @property
     def cereal(self) -> "Cereal":
@@ -168,7 +196,12 @@ class Cereal(object):
 
     # I/O API
 
-    def write_model(self, model: BaseModel, workdir: Union[UPath, Path, str]) -> UPath:
+    def write_model(
+        self,
+        model: BaseModel,
+        target_path: Union[UPath, Path, str],
+        fs: Optional[AbstractFileSystem] = None,
+    ) -> str:
         """Write the pydantic.BaseModel to the path.
 
         TODO
@@ -176,9 +209,10 @@ class Cereal(object):
         - Add JSON options.
         - Write YAML metadata instead?
         """
-        with self.context(workdir=workdir):
+        with self.context(target_path=target_path, fs=fs):
             # Create saving directory
-            wd = ensure_empty_dir(self.workdir)
+            fs = self.fs
+            targ_path = ensure_empty_dir(fs, self.target_path)
 
             # Write model (as JSON) with extra 'class' keyword
             # NOTE: This will write all wrapped types too!
@@ -187,18 +221,19 @@ class Cereal(object):
                 raise ValueError("Key 'class' is reserved for pydantic-cereal.")
             model_dict["class"] = get_import_string(type(model))
             model_json = json.dumps(model_dict, indent=2)
-            with (wd / "model.json").open(mode="w") as f:
+            with fs.open(append_path_parts(fs, targ_path, "model.json"), mode="w") as f:
                 f.write(model_json)
             # Write schema (as JSON)
             model_j_schema = json.dumps(model.model_json_schema(), indent=2)
-            with (wd / "model.schema.json").open(mode="w") as f:
+            with fs.open(append_path_parts(fs, targ_path, "model.schema.json"), mode="w") as f:
                 f.write(model_j_schema)
             # FIXME: We need to also write metadata somewhere, such as "what object is this?"...
-        return wd
+        return targ_path
 
     def read_model(
         self,
-        workdir: Union[UPath, Path, str],
+        target_path: Union[UPath, Path, str],
+        fs: Optional[AbstractFileSystem] = None,
         *,
         supercls: Type[TModel] = BaseModel,  # type: ignore
     ) -> TModel:
@@ -207,10 +242,11 @@ class Cereal(object):
             raise TypeError(
                 f"Can only read Pydantic models, but {supercls!r} is not derived from BaseModel."
             )
-        with self.context(workdir=workdir):
-            wd = self.workdir
+        with self.context(target_path=target_path, fs=fs):
+            fs = self.fs
+            targ_path = self.target_path
             # Load raw data
-            with (wd / "model.json").open(mode="r") as f:
+            with fs.open(append_path_parts(fs, targ_path, "model.json"), mode="r") as f:
                 model_raw = json.load(f)
             # Get model class
             assert isinstance(model_raw, dict)
@@ -234,9 +270,11 @@ class Cereal(object):
 
     # Internal API
 
-    def context(self, workdir: Union[UPath, Path, str]) -> CerealContext:
+    def context(
+        self, target_path: Union[UPath, Path, str], fs: Optional[AbstractFileSystem]
+    ) -> CerealContext:
         """Create a writing context (usable via `with` statement)."""
-        return CerealContext(self, workdir=workdir)
+        return CerealContext(self, target_path=target_path, fs=fs)
 
     @property
     def active_context(self) -> Optional[CerealContext]:
@@ -258,11 +296,18 @@ class Cereal(object):
         self._context_stack.pop()
 
     @property
-    def workdir(self) -> UPath:
+    def fs(self) -> AbstractFileSystem:
+        """Current filesystem."""
+        if self.active_context is None:
+            raise CerealContextError("No context is active - no current filesystem.")
+        return self.active_context.fs
+
+    @property
+    def target_path(self) -> str:
         """Working directory."""
         if self.active_context is None:
             raise CerealContextError("No context is active - no working directory.")
-        return self.active_context.workdir
+        return self.active_context.target_path
 
     def _generate_filename(self, obj: Any) -> str:
         """Generate a file name for an object.
@@ -279,15 +324,18 @@ class Cereal(object):
             raise CerealContextError("Context not active - aborting write.")
         filename = self._generate_filename(obj)
 
-        write_path = self.workdir / filename
-        writer(obj, str(write_path))
+        fs = self.fs
+        write_path = append_path_parts(fs, self.target_path, filename)
+        writer(obj, self.fs, write_path)
         return filename
 
     def _load_from_meta(self, cereal_meta: CerealInfo) -> Any:
         """Load an object from metadata."""
         f_reader, _ = self._normalize_reader(cereal_meta.cereal_reader)
-        upath = self.workdir / cereal_meta.object_path
-        return f_reader(str(upath))
+
+        fs = self.fs
+        path = append_path_parts(fs, self.target_path, cereal_meta.object_path)
+        return f_reader(fs, path)
 
     # Helpers
 

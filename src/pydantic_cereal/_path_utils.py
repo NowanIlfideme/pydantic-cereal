@@ -1,19 +1,19 @@
 """Universal path utilities."""
 
-from os import PathLike
-from typing import Union
-
-from upath import UPath
+from fsspec import AbstractFileSystem
 
 
-def ensure_empty_dir(uri: Union[str, PathLike, UPath]) -> UPath:
+def ensure_empty_dir(fs: AbstractFileSystem, workdir: str) -> str:
     """Ensure the directory exists, but is empty."""
-    res = UPath(uri)
-    try:
-        next(res.rglob("*"))
-    except StopIteration:
-        pass
+    if fs.exists(workdir):
+        dir_contents = fs.listdir(workdir)
+        if len(dir_contents) > 0:
+            raise FileExistsError(f"Non-empty directory exists at {workdir!r}")
     else:
-        raise FileExistsError(f"Non-empty directory exists at {uri!r}")
-    res.mkdir(parents=True, exist_ok=True)
-    return res
+        fs.mkdir(workdir)
+    return workdir
+
+
+def append_path_parts(fs: AbstractFileSystem, path_base: str, *path_parts: str) -> str:
+    """Append parts to a path given filesystem."""
+    return str(fs.sep).join([path_base, *path_parts])

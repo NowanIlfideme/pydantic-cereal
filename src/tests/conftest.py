@@ -4,6 +4,9 @@ from pathlib import Path
 from uuid import uuid4
 
 import pytest
+from fsspec import get_fs_token_paths
+from fsspec.implementations.local import LocalFileSystem
+from fsspec.implementations.memory import MemoryFileSystem
 from pytest_lazyfixture import lazy_fixture
 
 from pydantic_cereal import Cereal
@@ -13,6 +16,12 @@ from pydantic_cereal import Cereal
 def random_path() -> str:
     """Generate a random path."""
     return str(uuid4()).replace("-", "")
+
+
+@pytest.fixture
+def random_path_in_localdir(tmp_path: str, random_path: str) -> str:
+    """Get path to a randomly generated directory in temporary directory."""
+    return f"{tmp_path}/{random_path}"
 
 
 @pytest.fixture
@@ -37,6 +46,20 @@ def uri_localdir(tmp_path: Path, random_path: str) -> str:
 def uri(request: pytest.FixtureRequest) -> str:
     """Fixture for URI for different filesystems."""
     return str(request.param)
+
+
+@pytest.fixture
+def fs_memory() -> MemoryFileSystem:
+    """MemoryFileSystem at root of memory."""
+    fs, _, _ = get_fs_token_paths("memory://")
+    return fs
+
+
+@pytest.fixture
+def fs_localdir(tmp_path: Path) -> LocalFileSystem:
+    """LocalFileSystem in temporary directory."""
+    fs, _, _ = get_fs_token_paths("file://")
+    return fs
 
 
 @pytest.fixture

@@ -3,8 +3,8 @@
 The "global" `cereal` object here is only global to this module, which
 """
 
+from fsspec import AbstractFileSystem
 from pydantic import BaseModel, ConfigDict
-from upath import UPath  # based on `fsspec`, used for `pathlib.Path`-like interface
 
 from pydantic_cereal import Cereal
 
@@ -26,14 +26,14 @@ class MyType(object):
 # Create reader and writer from an fsspec URI
 
 
-def my_reader(uri: str) -> MyType:
+def my_reader(fs: AbstractFileSystem, path: str) -> MyType:
     """Read a MyType from an fsspec URI."""
-    return MyType(value=UPath(uri).read_text())
+    return MyType(value=fs.read_text(path))
 
 
-def my_writer(obj: MyType, uri: str) -> None:
+def my_writer(obj: MyType, fs: AbstractFileSystem, path: str) -> None:
     """Write a MyType object to an fsspec URI."""
-    UPath(uri).write_text(obj.value)
+    fs.write_text(path, obj.value)
 
 
 # "Register" this type with pydantic-cereal

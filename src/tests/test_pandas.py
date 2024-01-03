@@ -3,10 +3,12 @@
 # ruff: noqa: E402
 
 import pytest
+from pytest_lazyfixture import lazy_fixture
 
 pytest.importorskip("pandas")
 
 import pandas as pd
+from fsspec import AbstractFileSystem
 from pydantic import BaseModel, ConfigDict
 
 from pydantic_cereal import Cereal
@@ -29,10 +31,20 @@ def df() -> pd.DataFrame:
     return pd.DataFrame({"foo": [1, 2, 3]})
 
 
-def test_pandas_minimal(df: pd.DataFrame, uri: str):
+@pytest.mark.parametrize(
+    "fs, target_path",
+    [
+        (lazy_fixture("fs_localdir"), lazy_fixture("random_path_in_localdir")),
+        (lazy_fixture("fs_memory"), lazy_fixture("random_path")),
+        (None, lazy_fixture("uri_localdir")),
+        (None, lazy_fixture("uri_memory")),
+    ],
+)
+def test_pandas_minimal(df: pd.DataFrame, fs: AbstractFileSystem, target_path: str):
     """Minimal test for pandas."""
     mdl = ModelWithPandas(pdf=df)
-    cereal.write_model(mdl, uri)
-    mdl_rt = cereal.read_model(uri)
+
+    cereal.write_model(mdl, target_path, fs)
+    mdl_rt = cereal.read_model(target_path, fs)
     assert isinstance(mdl_rt, ModelWithPandas)
     assert mdl_rt.pdf.equals(df)
