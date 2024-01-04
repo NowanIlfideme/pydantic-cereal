@@ -54,6 +54,7 @@ class CerealContext(AbstractContextManager):
         cereal: "Cereal",
         target_path: Union[UPath, Path, str],
         fs: Optional[AbstractFileSystem] = None,
+        storage_options: Optional[dict] = None,
     ) -> None:
         assert isinstance(cereal, Cereal)
         if fs:
@@ -61,10 +62,10 @@ class CerealContext(AbstractContextManager):
             inner_path = target_path
         else:
             if isinstance(target_path, str):
-                fs, _, paths = get_fs_token_paths(target_path)
+                fs, _, paths = get_fs_token_paths(target_path, storage_options=storage_options)
                 inner_path = paths[-1]
             elif isinstance(target_path, Path) and not isinstance(target_path, UPath):
-                fs, _, paths = get_fs_token_paths(f"file://{target_path}")
+                fs, _, paths = get_fs_token_paths(f"file://{target_path}", storage_options)
                 inner_path = paths[-1]
             elif isinstance(target_path, UPath):
                 fs = target_path.fs
@@ -201,15 +202,26 @@ class Cereal(object):
         model: BaseModel,
         target_path: Union[UPath, Path, str],
         fs: Optional[AbstractFileSystem] = None,
+        storage_options: Optional[dict] = None,
     ) -> str:
         """Write the pydantic.BaseModel to the path.
+
+        Parameters
+        ----------
+            model: pydantic model to be written
+            target_path (UPath, Path or str): if 'fs' is not None - must be 'str', path within the 'fs'.
+                Otherwise, a general URI.
+            fs (AbstractFileSystem): filesystem within which the file should be written
+            storage_options (dict): (ignored if 'fs' is not None) Storage options to the
+                filesystem created from 'target_path' URI
+
 
         TODO
         ----
         - Add JSON options.
         - Write YAML metadata instead?
         """
-        with self.context(target_path=target_path, fs=fs):
+        with self.context(target_path=target_path, fs=fs, storage_options=storage_options):
             # Create saving directory
             fs = self.fs
             targ_path = ensure_empty_dir(fs, self.target_path)
@@ -234,15 +246,26 @@ class Cereal(object):
         self,
         target_path: Union[UPath, Path, str],
         fs: Optional[AbstractFileSystem] = None,
+        storage_options: Optional[dict] = None,
         *,
         supercls: Type[TModel] = BaseModel,  # type: ignore
     ) -> TModel:
-        """Read a pydantic.BaseModel from the path."""
+        """Read a pydantic.BaseModel from the path.
+
+        Parameters
+        ----------
+            target_path (UPath, Path or str): if 'fs' is not None - must be 'str', path within the 'fs'.
+                Otherwise, a general URI.
+            fs (AbstractFileSystem): filesystem within which the reading should be done
+            storage_options (dict): (ignored if 'fs' is not None) Storage options to the
+                filesystem created from 'target_path' URI
+
+        """
         if not issubclass(supercls, BaseModel):
             raise TypeError(
                 f"Can only read Pydantic models, but {supercls!r} is not derived from BaseModel."
             )
-        with self.context(target_path=target_path, fs=fs):
+        with self.context(target_path=target_path, fs=fs, storage_options=storage_options):
             fs = self.fs
             targ_path = self.target_path
             # Load raw data
@@ -271,10 +294,13 @@ class Cereal(object):
     # Internal API
 
     def context(
-        self, target_path: Union[UPath, Path, str], fs: Optional[AbstractFileSystem]
+        self,
+        target_path: Union[UPath, Path, str],
+        fs: Optional[AbstractFileSystem],
+        storage_options: Optional[dict],
     ) -> CerealContext:
         """Create a writing context (usable via `with` statement)."""
-        return CerealContext(self, target_path=target_path, fs=fs)
+        return CerealContext(self, target_path=target_path, fs=fs, storage_options=storage_options)
 
     @property
     def active_context(self) -> Optional[CerealContext]:
