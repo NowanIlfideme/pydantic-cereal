@@ -13,6 +13,7 @@ on:
   release:
     types:
       - created
+
 jobs:
   lint-ruff:
     name: "Lint (ruff)"
@@ -71,6 +72,11 @@ jobs:
   test-unit:
     name: "Unit Testing (pytest)"
     runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+    env:
+      GOOGLE_CLOUD_PROJECT: "pydantic-cereal"
     strategy:
       fail-fast: false
       matrix:
@@ -85,6 +91,12 @@ jobs:
           - "2.5"
     steps:
       - uses: actions/checkout@v4
+      - name: Authenticate with Google Cloud
+        uses: 'google-github-actions/auth@v2'
+        with:
+          project_id: ${{ env.GOOGLE_CLOUD_PROJECT }}
+          credentials_json: ${{ secrets.GOOGLE_CLOUD_STORAGE_KEY }}
+        continue-on-error: true # Don't completely fail if e.g. key time runs out
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
