@@ -45,6 +45,8 @@ dev = [
     "ipykernel",
     # Stubs (including optional dependencies)
     "pandas-stubs",
+    # Additional dependencies for testing
+    "gcsfs~=2023.12.2",
 ]
 docs = [
     "mkdocs==1.5.3",
