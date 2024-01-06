@@ -36,7 +36,7 @@ dev = [
     "ruff==0.1.11",
     "black==23.12.1",
     "isort==5.13.2",
-    "mypy==1.7.1",
+    "mypy==1.8.0",
     # Testing
     "pytest==7.4.3",
     "pytest-lazy-fixture==0.6.3",
