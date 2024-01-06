@@ -1,6 +1,6 @@
 """Tests for README/Index examples.
 
-The "global" `cereal` object here is only global to this module, which
+The "global" `cereal` object here is only global to this module.
 """
 
 from fsspec import AbstractFileSystem
@@ -28,7 +28,7 @@ class MyType(object):
 
 def my_reader(fs: AbstractFileSystem, path: str) -> MyType:
     """Read a MyType from an fsspec URI."""
-    return MyType(value=fs.read_text(path))
+    return MyType(value=fs.read_text(path))  # type: ignore
 
 
 def my_writer(obj: MyType, fs: AbstractFileSystem, path: str) -> None:
