@@ -10,7 +10,7 @@ def ensure_empty_dir(fs: AbstractFileSystem, workdir: str) -> str:
         if len(dir_contents) > 0:
             raise FileExistsError(f"Non-empty directory exists at {workdir!r}")
     else:
-        fs.mkdir(workdir)
+        fs.makedirs(workdir, exist_ok=True)
     return workdir
 
 

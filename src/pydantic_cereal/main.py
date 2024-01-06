@@ -56,10 +56,7 @@ class CerealContext(AbstractContextManager):
         fs: Optional[AbstractFileSystem] = None,
     ) -> None:
         assert isinstance(cereal, Cereal)
-        if fs:
-            assert isinstance(target_path, str)
-            inner_path = target_path
-        else:
+        if fs is None:
             if isinstance(target_path, str):
                 fs, _, paths = get_fs_token_paths(target_path)
                 inner_path = paths[-1]
@@ -71,9 +68,16 @@ class CerealContext(AbstractContextManager):
                 inner_path = target_path.path
             else:
                 raise TypeError("'target_path' must be a 'str', 'Path' or 'UPath'")
+        else:
+            assert isinstance(target_path, str)
+            inner_path = target_path
+
+        # Double-check
+        assert isinstance(fs, AbstractFileSystem)
+        assert isinstance(inner_path, str)
 
         self._target_path = inner_path
-        self._fs = fs
+        self._fs: AbstractFileSystem = fs
         self._cereal = cereal
 
     @property
