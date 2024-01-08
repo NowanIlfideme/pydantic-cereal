@@ -19,8 +19,9 @@ Writing a custom writer (serializer) and reader (loader) with `fsspec` URIs is q
 For most uses, you only need the [`Cereal`][pydantic_cereal.Cereal] class and `fsspec` or `upath`.
 
 ```python
-from upath import UPath  # based on `fsspec`, used for `pathlib.Path`-like interface
+from fsspec import AbstractFileSystem
 from pydantic import BaseModel, ConfigDict
+
 from pydantic_cereal import Cereal
 
 cereal = Cereal()  # This is a global variable
@@ -41,17 +42,17 @@ class MyType(object):
     There are some [limitations][limitations] on where you can define your Pydantic models.
 
 ```python
+# Create reader and writer from an fsspec filesystem and path
 
-# Create reader and writer from an fsspec URI
 
-def my_reader(uri: str) -> MyType:
+def my_reader(fs: AbstractFileSystem, path: str) -> MyType:
     """Read a MyType from an fsspec URI."""
-    return MyType(value=UPath(uri).read_text())
+    return MyType(value=fs.read_text(path))  # type: ignore
 
 
-def my_writer(obj: MyType, uri: str) -> None:
+def my_writer(obj: MyType, fs: AbstractFileSystem, path: str) -> None:
     """Write a MyType object to an fsspec URI."""
-    UPath(uri).write_text(obj.value)
+    fs.write_text(path, obj.value)
 
 
 # "Register" this type with pydantic-cereal
@@ -64,7 +65,7 @@ MyWrappedType = cereal.wrap_type(MyType, reader=my_reader, writer=my_writer)
 class MyModel(BaseModel):
     """My custom Pydantic model."""
 
-    config = ConfigDict(arbitrary_types_allowed=True)
+    config = ConfigDict(arbitrary_types_allowed=True)  # Pydantic configuration
     fld: MyWrappedType
 
 
@@ -97,7 +98,7 @@ JSON-compatible metadata, and call the `writer` function.
 ## Limitations
 
 1. Your `cereal` object doesn't necessarily have to be a global, but the same instance must be
-   used to define your
+   used to both *register* your model type and *write*/*read* your object.
 2. You can't define your Pydantic model inside a function, because `pydantic-cereal` relies on
    importing your type, and we can't import local variables.
    Instead, define it in a top-level module, then import it.
