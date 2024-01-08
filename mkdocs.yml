@@ -67,7 +67,10 @@ plugins:
               - "!^_" # exlude all members starting with _
   - mkdocs-jupyter:
       include_source: true
-      execute: true # TODO: Actually, we want to re-execute these, but not right now
+      execute: true
+      allow_errors: false # Enforce up-to-date documentation
+      # kernel_name: python3
+      # ignore_h1_titles: true
 
 markdown_extensions:
   - admonition
