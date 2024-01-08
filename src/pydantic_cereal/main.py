@@ -40,7 +40,7 @@ T = TypeVar("T")
 TModel = TypeVar("TModel", bound=BaseModel)
 
 
-__all__ = ["Cereal"]
+__all__ = ["Cereal", "CerealReader", "CerealWriter", "cereal_meta_schema"]
 
 
 class CerealContext(AbstractContextManager):

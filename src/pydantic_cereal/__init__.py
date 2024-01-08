@@ -6,6 +6,8 @@ __all__ = [
     "CerealProtocolError",
     "CerealRegistrationError",
     "Cereal",
+    "CerealReader",
+    "CerealWriter",
     "cereal_meta_schema",
     "__version__",
 ]
@@ -16,5 +18,5 @@ from .errors import (
     CerealProtocolError,
     CerealRegistrationError,
 )
-from .main import Cereal, cereal_meta_schema
+from .main import Cereal, CerealReader, CerealWriter, cereal_meta_schema
 from .version import __version__
