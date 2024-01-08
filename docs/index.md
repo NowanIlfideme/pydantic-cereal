@@ -12,7 +12,6 @@ This package, `pydantic-cereal`, is a small extension package that enables users
 models with "arbitrary" (non-JSON-fiendly) types to "arbitrary" file-system-like locations.
 It uses [`fsspec`](https://filesystem-spec.readthedocs.io/en/latest/) to support generic file systems.
 Writing a custom writer (serializer) and reader (loader) with `fsspec` URIs is quite straightforward.
-
 You can also use [`universal-pathlib`](https://pypi.org/project/universal-pathlib/)'s
 `UPath` with `pydantic-cereal`.
 
