@@ -23,7 +23,7 @@ class MyType(object):
         return f"MyType({self.value})"
 
 
-# Create reader and writer from an fsspec URI
+# Create reader and writer from an fsspec filesystem and path
 
 
 def my_reader(fs: AbstractFileSystem, path: str) -> MyType:

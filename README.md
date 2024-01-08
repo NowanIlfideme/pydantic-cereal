@@ -10,23 +10,28 @@ brings many changes and improvements, including a
 
 This package, `pydantic-cereal`, is a small extension package that enables users to serialize Pydantic
 models with "arbitrary" (non-JSON-fiendly) types to "arbitrary" file-system-like locations.
-It uses [`fsspec`](https://filesystem-spec.readthedocs.io/en/latest/) and
-[`universal_pathlib`](https://pypi.org/project/universal-pathlib/) to support generic file systems.
+It uses [`fsspec`](https://filesystem-spec.readthedocs.io/en/latest/) to support generic file systems.
 Writing a custom writer (serializer) and reader (loader) with `fsspec` URIs is quite straightforward.
+You can also use [`universal-pathlib`](https://pypi.org/project/universal-pathlib/)'s
+`UPath` with `pydantic-cereal`.
 
-See the [full documentation here](https://pydantic-cereal.readthedocs.io/).
+📘 See the [full documentation here](https://pydantic-cereal.readthedocs.io/). 📘
 
 ## Usage Example
 
-For most uses, you only need the `Cereal` class and `fsspec` or `upath`.
+See the [minimal pure-Python example](./docs/examples/minimal.ipynb) to learn how to wrap your own type.
+Below is a preview of this example.
 
 ```python
-from upath import UPath  # based on `fsspec`, used for `pathlib.Path`-like interface
+from fsspec import AbstractFileSystem
 from pydantic import BaseModel, ConfigDict
+
 from pydantic_cereal import Cereal
 
 cereal = Cereal()  # This is a global variable
 
+
+# Create and "register" a custom type
 
 class MyType(object):
     """My custom type, which isn't a Pydantic model."""
@@ -38,29 +43,24 @@ class MyType(object):
         return f"MyType({self.value})"
 
 
-# Create reader and writer from an fsspec URI
-
-def my_reader(uri: str) -> MyType:
+def my_reader(fs: AbstractFileSystem, path: str) -> MyType:
     """Read a MyType from an fsspec URI."""
-    return MyType(value=UPath(uri).read_text())
+    return MyType(value=fs.read_text(path))  # type: ignore
 
 
-def my_writer(obj: MyType, uri: str) -> None:
+def my_writer(obj: MyType, fs: AbstractFileSystem, path: str) -> None:
     """Write a MyType object to an fsspec URI."""
-    UPath(uri).write_text(obj.value)
+    fs.write_text(path, obj.value)
 
-
-# "Register" this type with pydantic-cereal
 MyWrappedType = cereal.wrap_type(MyType, reader=my_reader, writer=my_writer)
-# NOTE: Your type isn't modified, we just apply `Annotated` with a custom serializer and validator
 
 
-# Use the wrapped type as the fields of your Pydantic model
+# Use type within Pydantic model
 
 class MyModel(BaseModel):
     """My custom Pydantic model."""
 
-    model_config = ConfigDict(arbitrary_types_allowed=True)  # Pydantic configuration
+    config = ConfigDict(arbitrary_types_allowed=True)  # Pydantic configuration
     fld: MyWrappedType
 
 
@@ -76,5 +76,4 @@ assert isinstance(obj, MyModel)
 assert isinstance(obj.fld, MyType)
 ```
 
-For more detailed discussion, see the [minimal pure-Python example](./docs/examples/minimal.ipynb) or
-the [Pandas dataframe example](./docs/examples/pandas.ipynb)
+For wrapping 3rd-party libraries, see the [Pandas dataframe example](./docs/examples/pandas.ipynb).

@@ -8,6 +8,12 @@ This reference contains automatically generated Python API docs.
 
 ::: pydantic_cereal.cereal_meta_schema
 
+<!-- Protocols -->
+
+::: pydantic_cereal.CerealReader
+
+::: pydantic_cereal.CerealWriter
+
 <!-- Errors -->
 
 ::: pydantic_cereal.CerealBaseError
