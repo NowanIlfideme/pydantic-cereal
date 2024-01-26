@@ -33,7 +33,7 @@ dev = [
     # Dev tools
     "pre-commit==3.6.0",
     # Linting
-    "ruff==0.1.11",
+    "ruff==0.1.14",
     "black==23.12.1",
     "isort==5.13.2",
     "mypy==1.8.0",
