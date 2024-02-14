@@ -1,5 +1,4 @@
-"""Define types with polars."""
-"""Test polars models."""
+"""Define types with polars, to be used for testing."""
 
 # ruff: noqa: E402
 import polars as pl
