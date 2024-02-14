@@ -58,7 +58,7 @@ docs = [
     "mkdocs-jupyter==0.24.6",
     "pygments==2.17.2",
 ]
-datatests = ["pandas~=2.1.3", "pyarrow~=14.0.1", "pyspark~=3.5.0", "polars~=0.20.7"]
+datatests = ["pandas>=2.1.3,<2.3.0", "pyarrow~=14.0.1", "pyspark~=3.5.0", "polars~=0.20.7"]
 
 [project.scripts]
 
