@@ -46,6 +46,7 @@ dev = [
     "ipykernel",
     # Stubs (including optional dependencies)
     "pandas-stubs",
+    "polars",
     # Additional dependencies for testing
     "gcsfs~=2023.12.2",
 ]
@@ -57,7 +58,7 @@ docs = [
     "mkdocs-jupyter==0.24.6",
     "pygments==2.17.2",
 ]
-datatests = ["pandas~=2.1.3", "pyarrow~=14.0.1", "pyspark~=3.5.0"]
+datatests = ["pandas~=2.1.3", "pyarrow~=14.0.1", "pyspark~=3.5.0", "polars~=0.20.7"]
 
 [project.scripts]
 
