@@ -43,7 +43,7 @@ class FileSystemTestCases:
             else:
                 token = None
 
-            raw_fs = gcsfs.GCSFileSystem(project=gcs_project, check_connection=True, token=token)
+            raw_fs = gcsfs.GCSFileSystem(project=gcs_project, token=token)
             raw_fs.ls(gcs_bucket)  # check if bucket is available
             fs = DirFileSystem(path=gcs_bucket, fs=raw_fs)
             return lambda: fs, lambda: fs
@@ -74,6 +74,14 @@ class CerealObjectTestCases:
 
         df = pd.DataFrame({"foo": [1, 2, 3]})
         mdl = ModelWithPandas(pdf=df)
+        return mdl
+
+    def case_polars_model(self) -> BaseModel:
+        """Case with a Polars model installed."""
+        from .def_polars import ModelWithPolars, pl
+
+        df = pl.DataFrame({"foo": [1, 2, 3]})
+        mdl = ModelWithPolars(pldf=df)
         return mdl
 
 

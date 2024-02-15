@@ -33,31 +33,32 @@ dev = [
     # Dev tools
     "pre-commit==3.6.0",
     # Linting
-    "ruff==0.1.11",
+    "ruff==0.2.1",
     "black==23.12.1",
     "isort==5.13.2",
     "mypy==1.8.0",
     # Testing
     "pytest==7.4.4",
     "pytest-lazy-fixture==0.6.3",
-    "pytest-cases==3.8.1",
+    "pytest-cases==3.8.2",
     # Jupyter Notebook
     "jupyter",
     "ipykernel",
     # Stubs (including optional dependencies)
     "pandas-stubs",
+    "polars",
     # Additional dependencies for testing
     "gcsfs~=2023.12.2",
 ]
 docs = [
     "mkdocs==1.5.3",
-    "mkdocs-material==9.5.3",
+    "mkdocs-material==9.5.9",
     "mkdocstrings==0.24.0",
     "mkdocstrings-python==1.8.0",
     "mkdocs-jupyter==0.24.6",
     "pygments==2.17.2",
 ]
-datatests = ["pandas~=2.1.3", "pyarrow~=14.0.1", "pyspark~=3.5.0"]
+datatests = ["pandas~=2.1.3", "pyarrow~=14.0.1", "pyspark~=3.5.0", "polars~=0.20.7"]
 
 [project.scripts]
 
