@@ -48,7 +48,7 @@ dev = [
     "pandas-stubs",
     "polars",
     # Additional dependencies for testing
-    "gcsfs~=2023.12.2",
+    "gcsfs>=2023.12.2,<2024.3.0",
 ]
 docs = [
     "mkdocs==1.5.3",
