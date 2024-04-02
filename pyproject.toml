@@ -37,6 +37,7 @@ dev = [
     "black==24.2.0",
     "isort==5.13.2",
     "mypy==1.8.0",
+    "pyright==1.1.356",
     # Testing
     "pytest==7.4.4",
     "pytest-lazy-fixture==0.6.3",
@@ -58,7 +59,12 @@ docs = [
     "mkdocs-jupyter==0.24.6",
     "pygments==2.17.2",
 ]
-datatests = ["pandas~=2.1.3", "pyarrow~=14.0.1", "pyspark~=3.5.0", "polars~=0.20.7"]
+datatests = [
+    "pandas~=2.1.3",
+    "pyarrow~=14.0.1",
+    "pyspark~=3.5.0",
+    "polars~=0.20.7",
+]
 
 [project.scripts]
 
@@ -119,3 +125,9 @@ disallow_untyped_defs = true
 [[tool.mypy.overrides]]
 module = ["setuptools", "setuptools_scm", "fsspec"]
 ignore_missing_imports = true
+
+[tool.pyright]
+include = ["src/pydantic_cereal"]
+exclude = ["src/tests"]
+pythonVersion = "3.9"
+# reportInvalidTypeForm = false

@@ -1,8 +1,10 @@
 """Define MyType and custom models."""
+
 # Custom object type
 
 from fsspec import AbstractFileSystem
 from pydantic import BaseModel, ConfigDict
+from typing_extensions import TypeAlias
 
 from .common import cereal
 
@@ -35,7 +37,7 @@ def my_writer(obj: MyType, fs: AbstractFileSystem, path: str) -> None:
     fs.write_text(path, obj.value)
 
 
-MyWrappedType = cereal.wrap_type(MyType, reader=my_reader, writer=my_writer)
+MyWrappedType: TypeAlias = cereal.wrap_type(MyType, reader=my_reader, writer=my_writer)  # type: ignore
 
 
 class MyModel(BaseModel):

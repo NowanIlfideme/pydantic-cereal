@@ -108,7 +108,7 @@ class CerealContext(AbstractContextManager):
     ) -> Optional[bool]:
         """Exit from the context manager."""
         self.cereal._pop_context(self)
-        return super().__exit__(__exc_type, __exc_value, __traceback)
+        return None
 
 
 TType = TypeVar("TType", bound=type)
