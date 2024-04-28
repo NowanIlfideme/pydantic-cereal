@@ -31,7 +31,7 @@ dev = [
     "setuptools-scm[toml]>=6.2",
     "wheel>=0.41",
     # Dev tools
-    "pre-commit==3.6.0",
+    "pre-commit==3.7.0",
     # Linting
     "ruff==0.2.1",
     "black==24.2.0",
