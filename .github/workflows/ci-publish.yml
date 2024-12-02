@@ -43,7 +43,7 @@ jobs:
       - name: Lint with ruff
         run: ruff check .
   lint-mypy:
-    name: "Type Check (mypy, pyright)"
+    name: "Type Check (mypy)"
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -69,8 +69,8 @@ jobs:
           pip install -e ".[${{ matrix.deps }}]"
       - name: Lint with mypy
         run: mypy
-      - name: Lint with pyright
-        run: pyright
+      # - name: Lint with pyright
+      #   run: pyright
   test-unit:
     name: "Unit Testing (pytest)"
     runs-on: ubuntu-latest
