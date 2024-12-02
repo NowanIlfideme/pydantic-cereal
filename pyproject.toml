@@ -58,6 +58,7 @@ docs = [
     "mkdocstrings-python==1.8.0",
     "mkdocs-jupyter==0.24.6",
     "pygments==2.17.2",
+    "griffe==1.2.0",
 ]
 datatests = [
     "pandas~=2.1.3",
